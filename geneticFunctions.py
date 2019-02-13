@@ -8,7 +8,7 @@ outputPath = "output.png"
 length = 64
 size = 64*64
 populationSize = 5000
-Generations = 500
+Generations = 50
 
 def weightedChoice(items):
   weight_total = sum((item[1] for item in items))
@@ -113,3 +113,4 @@ if __name__ == "__main__":
 
 
 
+    
