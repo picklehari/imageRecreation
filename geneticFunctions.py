@@ -5,8 +5,8 @@ from PIL import Image
 
 inputPath = "test.png"
 outputPath = "output.png"
-length = 64
-size = 64*64
+length = 256
+size = 256*256
 populationSize = 5000
 Generations = 50
 
@@ -20,49 +20,38 @@ def weightedChoice(items):
   return item
 
 def imageToMatrix(path):
-    return imageio.imread(path)
+    return numpy.array(Image.open(path))
 
-def cutIntoSingleDimension(imageMatrix):
-    return imageMatrix.ravel()
-
-def rollBackIntoImage(values):
-    image =[[0]*length]*length
-    matrixCount = 0
-    for i in range(0,size):
-        image[matrixCount][size%length] = values[i]
-        if size%length == length -1:
-            matrixCount+=1
-    return image
-
-
-def randomInteger():
-    return int(random.randrange(0,255,1))
 
 def randomPopulation():
     pop = []
     for i in range(populationSize):
-        chromosome = [0]*size
-        for c in range(0,size):
-            chromosome[c] = randomInteger()
+        chromosome = [[[0]*4]*length]*length
+        for c in range(length):
+            for d in range(length):
+                for e in range(0,3):
+                    chromosome[c][d][e] = random.uniform(0,1)*255
+                chromosome[c][d][3] = 255
         pop.append(chromosome)
     return pop
 
 def fitness(chromosome):
     fitness = 0
-    imageToDraw = cutIntoSingleDimension(imageToMatrix(inputPath))
-    for i in range(size):
-        fitness += abs(chromosome[i]-imageToDraw[i])
+    imageToDraw = imageToMatrix(inputPath)
+    for i in range(0,length):
+        for j in range(length):
+            for k in range(4):
+                fitness += abs(chromosome[i][j][k]-imageToDraw[i][j][k])
     return fitness
 
 def mutate(chromosome):
-    chromosomeOutput = [0]*size
     mutationChance = 100
-    for i in range(size):
-        if int(random.random()*mutationChance) == 1:
-            chromosomeOutput[i] = randomInteger()
-        else:
-            chromosomeOutput[i] = chromosome[i]
-    return chromosomeOutput
+    for i in range(length):
+        for j in range(length):
+            for k in range(4):
+                if int(random.random()*mutationChance) == 1:
+                    chromosome[i][j][k] = random.randrange(0,255)
+    return chromosome
 
 def crossover(chromosomeA,chromosomeB):
     position = int(random.random()*size)
@@ -92,8 +81,10 @@ def generateImage():
             induvidualB = weightedChoice(weightedPopulation)
 
             induvidualA,induvidualB = crossover(induvidualA,induvidualB)
-            population.append(mutate(induvidualA))
-            population.append(mutate(induvidualB))
+            induvidualA = mutate(induvidualA)
+            induvidualB = mutate(induvidualB)
+            population.append(induvidualA)
+            population.append(induvidualB)
 
     fittestImage = population[0]
     minimumFitness = fitness(population[0])
@@ -105,11 +96,12 @@ def generateImage():
             minimumFitness = induvidualFitness
 
         
-    outputImage = numpy.array(rollBackIntoImage(fittestImage),dtype=numpy.uint8)
-    imageio.imwrite("output.png",outputImage)
+    outputImage = numpy.array(fittestImage,dtype='uint8')
+    #outputImage = Image.fromarray(outputImage)
+    #outputImage.save('output.png')
     return outputImage
         
-
+#generateImage()
 
 
     
