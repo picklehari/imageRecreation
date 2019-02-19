@@ -7,6 +7,7 @@ inputPath = "test.png"
 outputPath = "output.png"
 length = 256
 size = 256*256
+numberOfAttributes = 3
 populationSize = 5000
 Generations = 50
 
@@ -20,44 +21,47 @@ def weightedChoice(items):
   return item
 
 def imageToMatrix(path):
-    return numpy.array(Image.open(path))
+    return numpy.array(Image.open(path),dtype='uint8')
 
 
 def randomPopulation():
-    pop = []
-    for i in range(populationSize):
-        chromosome = [[[0]*4]*length]*length
-        for c in range(length):
-            for d in range(length):
-                for e in range(0,3):
-                    chromosome[c][d][e] = random.uniform(0,1)*255
-                chromosome[c][d][3] = 255
-        pop.append(chromosome)
-    return pop
+    population=[]
+    citizen = [[[0]*numberOfAttributes]*length]*length
+    for i in range(0,populationSize):
+        for c in range(0,length):
+            for d in range(0,length):
+                citizen[c][d] = [int(random.uniform(0,1)*255) for e in range(numberOfAttributes)]
+        population.append(numpy.array(citizen,dtype='uint8'))
+    return population
 
 def fitness(chromosome):
     fitness = 0
     imageToDraw = imageToMatrix(inputPath)
     for i in range(0,length):
         for j in range(length):
-            for k in range(4):
-                fitness += abs(chromosome[i][j][k]-imageToDraw[i][j][k])
+            for k in range(numberOfAttributes):
+                fitness += abs(int(chromosome[i][j][k])-int(imageToDraw[i][j][k]))
     return fitness
 
 def mutate(chromosome):
     mutationChance = 100
     for i in range(length):
         for j in range(length):
-            for k in range(4):
+            for k in range(numberOfAttributes):
                 if int(random.random()*mutationChance) == 1:
                     chromosome[i][j][k] = random.randrange(0,255)
     return chromosome
 
+
 def crossover(chromosomeA,chromosomeB):
-    position = int(random.random()*size)
-    return chromosomeA[:position]+chromosomeB[position:],chromosomeB[:position]+chromosomeA[position:]
+    position = int(random.random()*length)
+    return mate(chromosomeA,chromosomeB,position)
 
-
+def mate(chromsomeA,chromsomeB,position):
+    for i in range(position):
+        chromsomeA[(length-1)-i] = chromsomeB[(length-1)-i]    
+        chromsomeB[(length-1)-i] = chromsomeA[(length-1)-i]
+    return chromsomeA,chromsomeB
 
 def generateImage():
     population = randomPopulation()
@@ -97,11 +101,11 @@ def generateImage():
 
         
     outputImage = numpy.array(fittestImage,dtype='uint8')
-    #outputImage = Image.fromarray(outputImage)
-    #outputImage.save('output.png')
+    outputImage = Image.fromarray(outputImage)
+    outputImage.save('output.png')
     return outputImage
         
-#generateImage()
+generateImage()
 
 
     
