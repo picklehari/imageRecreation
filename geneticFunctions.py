@@ -3,12 +3,12 @@ import imageio
 import numpy
 from PIL import Image
 
-inputPath = "test.png"
-outputPath = "output.png"
-length = 256
-size = 256*256
+inputPath = "test.jpg"
+outputPath = "output.jpg"
+length = 8
+size = 8*8
 numberOfAttributes = 3
-populationSize = 5000
+populationSize = 500
 Generations = 50
 
 def weightedChoice(items):
@@ -21,7 +21,7 @@ def weightedChoice(items):
   return item
 
 def imageToMatrix(path):
-    return numpy.array(Image.open(path),dtype='uint8')
+    return numpy.array(Image.open(path,'r'),dtype='uint8')
 
 
 def randomPopulation():
@@ -37,10 +37,8 @@ def randomPopulation():
 def fitness(chromosome):
     fitness = 0
     imageToDraw = imageToMatrix(inputPath)
-    for i in range(0,length):
-        for j in range(length):
-            for k in range(numberOfAttributes):
-                fitness += abs(int(chromosome[i][j][k])-int(imageToDraw[i][j][k]))
+    imageDifference = imageToDraw - chromosome
+    fitness = imageDifference.reshape(1,size*numberOfAttributes).sum()
     return fitness
 
 def mutate(chromosome):
@@ -74,6 +72,7 @@ def generateImage():
 
             if fitnessValue == 0:
                 pair = induvidual,1.0
+
             else:
                 pair = induvidual,1.0/fitnessValue
         weightedPopulation.append(pair)
@@ -90,14 +89,14 @@ def generateImage():
             population.append(induvidualA)
             population.append(induvidualB)
 
-    fittestImage = population[0]
-    minimumFitness = fitness(population[0])
+            fittestImage = population[0]
+            minimumFitness = fitness(population[0])
 
-    for induvidual in population:
-        induvidualFitness = fitness(induvidual)
-        if induvidualFitness <= minimumFitness:
-            fittestImage = induvidual
-            minimumFitness = induvidualFitness
+            for induvidual in population:
+                induvidualFitness = fitness(induvidual)
+                if induvidualFitness <= minimumFitness:
+                    fittestImage = induvidual
+                    minimumFitness = induvidualFitness
 
         
     outputImage = numpy.array(fittestImage,dtype='uint8')
